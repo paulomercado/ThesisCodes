@@ -5,8 +5,6 @@ The repository is organized as follows.
 
 ```
 📂 Final Data/
-┣ 📂 raw/ 
-┣ 📂 processed/ 
 ┗ 📄 *.pkl
 📂 Preds/ 
 ┣ 📂 GARCH/
@@ -30,8 +28,6 @@ The repository is organized as follows.
 ```
 ### Final Data
 - `Final Data/` contains input and processed data files.
-  - `Raw/` contains raw data files.
-  - `Processed/` contains aggregated daily data.
   - `*.pkl` files are used as input data for model training.
 
 ### Predictions
