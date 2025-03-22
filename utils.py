@@ -8,6 +8,8 @@ import os
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+from dieboldmariano import dm_test
+
 class Hyperparameter:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
@@ -42,6 +44,18 @@ def set_seed(seed=None):
     torch.backends.cudnn.benchmark = False
     os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':16:8'
 
+def conduct_dm(actual, lstm, time_series, region, target_variable, statmodel):
+    # Perform the Diebold-Mariano test
+    dm, pvalue = dm_test(actual, lstm, time_series)
+    
+    # Print the test results
+    if pvalue < 0.05:
+        print(f"There is a significant difference between LSTM and {statmodel} in predicting {region} {target_variable}.")
+    else:
+        print(f"LSTM has the same predictive accuracy as {statmodel} in predicting {region} {target_variable}.")
+    
+    print(f"The DM Test Statistic is {dm[0]:.4f}")  # Display the statistic with 4 decimal places
+    print(f"The p-value is {pvalue[0]:.4f}")       # Display the p-value with 4 decimal places
 
 font = {'family': 'serif',
         'color':  'k',

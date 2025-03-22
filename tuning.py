@@ -71,7 +71,7 @@ def tunemodel(train_data, val_data, train_labels, val_labels,
     
     
     search_space = {
-        "hidden_size": tune.choice([16, 32,50, 64, 100,128,150,200, 256, 512]),
+        "hidden_size": tune.choice([16, 32,50, 64, 100,128,150,200,250, 256, 512]),
         "lr": tune.loguniform(1e-5, 1e-2),
         "weight_decay": tune.loguniform(1e-5, 1e-2),
         "dropout": tune.uniform(0.0, 0.5),
@@ -95,7 +95,7 @@ def tunemodel(train_data, val_data, train_labels, val_labels,
         reduction_factor=2
     )
     
-    search_alg = OptunaSearch(points_to_evaluate=initialconfig, metric="loss", mode="min")
+    
     plateau_stopper = TrialPlateauStopper(metric="val_loss", mode="min")
 
     reporter = CLIReporter(
@@ -123,12 +123,15 @@ def tunemodel(train_data, val_data, train_labels, val_labels,
         resources={"cpu": 5, "gpu": 0.25,'accelerator_type:G':0.25}
     )
 
+    
+    search_alg = OptunaSearch(points_to_evaluate=initialconfig, metric="loss", mode="min")
+
     tuner = Tuner(
         trainable_with_resources,  
         param_space=search_space,
         tune_config=tune.TuneConfig(
             search_alg=search_alg,
-            num_samples=trials,
+            num_samples=trials,  # Set the number of trials after the random search
             scheduler=scheduler,
             trial_dirname_creator=trial_dirname_creator
         ),
