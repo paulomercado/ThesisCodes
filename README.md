@@ -36,7 +36,8 @@ The repository is organized as follows.
 📄 train.py                    
 📄 transformscript.py          
 📄 tuning.py                   
-📄 utils.py                    
+📄 utils.py
+📄 *.cfg                       
 ```
 ### Final Data
 - `Final Data/` contains input and processed data files.
@@ -70,3 +71,4 @@ The repository is organized as follows.
 - `transformscript.py` contains the script for data transformation.
 - `tuning.py` contains the code for LSTM hyperparameter tuning.
 - `utils.py` contains additional utility functions.
+- `*.cfg` contains optimized hyperparameters.
