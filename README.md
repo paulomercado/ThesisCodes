@@ -36,8 +36,7 @@ The repository is organized as follows.
 📄 train.py                    
 📄 transformscript.py          
 📄 tuning.py                   
-📄 utils.py
-📄 *.cfg                       
+📄 utils.py                       
 ```
 ### Final Data
 - `Final Data/` contains input and processed data files.
@@ -63,7 +62,7 @@ The repository is organized as follows.
 - `SARIMAX_MIN.ipynb` contains the SARIMAX model for Mindanao.
 - `SARIMAX_VIS.ipynb` contains the SARIMAX model for Visayas.
 - `datascript.py` contains the script for data preprocessing.
-- `finalconfig.json` contains configuration settings for LSTM model training.
+- `finalconfig.json` contains optimized hyperparameter configuration settings for LSTM model training.
 - `main.ipynb` serves as the main notebook for running LSTM experiments.
 - `model.py` contains LSTM model-related classes and functions.
 - `plot.ipynb` contains the notebook for visualizing results.
@@ -71,4 +70,3 @@ The repository is organized as follows.
 - `transformscript.py` contains the script for data transformation.
 - `tuning.py` contains the code for LSTM hyperparameter tuning.
 - `utils.py` contains additional utility functions.
-- `*.cfg` contains optimized hyperparameters.
