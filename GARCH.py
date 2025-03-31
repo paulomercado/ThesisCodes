@@ -256,30 +256,49 @@ def garch_predict(
     """
     Generate predictions using a SARIMAX-GARCH or SARIMAX-EGARCH model.
     """
-    rs = np.random.RandomState(42)
+    # Set the random seed for reproducibility
+    seed = 42
+    rs = np.random.RandomState(seed)
+    
+    # Define a callable for the GARCH forecast's random number generator
+    def rng(size):
+        return rs.normal(size=size)
     
     # Generate GARCH forecasts
     forecast_horizon = len(test_predict)
     garch_forecast = garch_fitted_model.forecast(
-        horizon=forecast_horizon, start=test_predict.index[0], align='origin', reindex=False, method='simulation', simulations=100
+        horizon=forecast_horizon, 
+        start=test_predict.index[0], 
+        align='origin', 
+        reindex=False, 
+        method='simulation', 
+        simulations=100,
+        rng=rng  # Pass the callable for random number generation
     )
     
     forecasted_variance = garch_forecast.variance.iloc[-1, :forecast_horizon].values
     forecasted_stddev = np.sqrt(forecasted_variance)
     
+    # Generate random innovations based on the specified distribution
     if dist == "normal":
         simulated_z = rs.normal(loc=0, scale=1, size=forecast_horizon)
     elif dist == "t":
         simulated_z = rs.standard_t(df=garch_fitted_model.params['nu'], size=forecast_horizon)
     elif dist == "ged":
-        simulated_z = gennorm.rvs(beta=garch_fitted_model.params['nu'], size=forecast_horizon, random_state=rs)
+        simulated_z = gennorm.rvs(
+            beta=garch_fitted_model.params['nu'], 
+            size=forecast_horizon, 
+            random_state=rs  # Explicitly pass the RandomState object
+        )
     else:
         raise ValueError("Invalid distribution. Choose from 'normal', 't', or 'ged'.")
     
+    # Combine predictions
     predicted_et = forecasted_stddev * simulated_z
     predicted_et = pd.Series(predicted_et, index=test_predict.index)
     combined_predictions = test_predict + predicted_et
     
+    # Plot results
     fig, ax = plt.subplots(figsize=(10, 6))
     train.plot(ax=ax, label='Train Data', color='blue')
     test_predict.plot(ax=ax, label='SARIMAX Predictions (mu)', color='orange')
@@ -290,4 +309,3 @@ def garch_predict(
     plt.show()
     
     return combined_predictions
-    
