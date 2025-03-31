@@ -14,7 +14,7 @@ from ray.tune.search.optuna import OptunaSearch
 from ray.tune.stopper import TrialPlateauStopper
 from ray.train import RunConfig
 
-from datascript import TimeSeriesDataset
+from datascript import TimeSeriesDataset, split_data
 from train import train_model, evaluate
 from utils import Hyperparameter,  set_seed
 
@@ -27,7 +27,7 @@ activation_fn_mapping = {
         "sigmoid": torch.sigmoid
     }
 
-def raytrain(config, epoch, train_data, val_data, train_labels, val_labels, input_size, output_size, train_criterion, LSTMModel):
+def raytrain(config, epoch, transformed_features, transformed_target, input_size, output_size, train_criterion, LSTMModel):
 
     set_seed(1)
     hyperparams = Hyperparameter(**config)
@@ -36,6 +36,10 @@ def raytrain(config, epoch, train_data, val_data, train_labels, val_labels, inpu
     norm_layer_type = hyperparams.norm_layer_type
     activation_fn = activation_fn_mapping[hyperparams.activation_fn]
     activation_fn1 = activation_fn_mapping[hyperparams.activation_fn1]
+    if hyperparams.lag > 0:
+        input_size = transformed_features.shape[1]*2
+    else:
+        input_size = transformed_features.shape[1]
     
     model = LSTMModel(
         input_size, 
@@ -50,7 +54,14 @@ def raytrain(config, epoch, train_data, val_data, train_labels, val_labels, inpu
     
     optimizer = optim.AdamW(model.parameters(), lr=hyperparams.lr, weight_decay=hyperparams.weight_decay)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min',factor= hyperparams.factor, patience=hyperparams.patience)
-    
+    if hyperparams.lag > 0:
+        for col in transformed_features.columns:
+            transformed_features[col + "_LAGGED"] = transformed_features[col].shift(hyperparams.lag).fillna(0)
+    X = transformed_features.values
+    y = transformed_target.values
+    train_data, val_data, _ = split_data(X)
+    train_labels, val_labels, _ = split_data(y)
+
     train_dataset = TimeSeriesDataset(train_data, train_labels, hyperparams.seq_len)
     train_dataloader = DataLoader(train_dataset, hyperparams.batch_size, shuffle=True)
 
@@ -64,7 +75,7 @@ def raytrain(config, epoch, train_data, val_data, train_labels, val_labels, inpu
         train.report({"loss": val_loss})
     
 
-def tunemodel(train_data, val_data, train_labels, val_labels,  
+def tunemodel(transformed_features,transformed_target,  
                    input_size, output_size, epoch, trials, LSTMModel, 
                    train_criterion,initialconfig):
     set_seed(1)
@@ -84,7 +95,8 @@ def tunemodel(train_data, val_data, train_labels, val_labels,
         "seq_len": tune.choice([3,5,7, 9,  11,  13,  15]),
         "batch_size": tune.choice([32, 64, 128, 256]),
         "norm_layer_type": tune.choice(['batch_norm', 'layer_norm', 'none']),
-        "lambda_reg": tune.loguniform(1e-5, 1e-1)
+        "lambda_reg": tune.loguniform(1e-5, 1e-1),
+        "lag": tune.choice([0,1, 2, 3, 4,5,6,7,14])
     }
 
     scheduler = ASHAScheduler(
@@ -108,10 +120,8 @@ def tunemodel(train_data, val_data, train_labels, val_labels,
     trainable_with_params = tune.with_parameters(
         raytrain, 
         epoch=epoch,
-        train_data=train_data,
-        val_data=val_data,
-        train_labels=train_labels,
-        val_labels=val_labels,
+        transformed_features=transformed_features,
+        transformed_target=transformed_target,
         input_size=input_size,
         output_size=output_size,
         train_criterion=train_criterion,

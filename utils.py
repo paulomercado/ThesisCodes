@@ -46,7 +46,7 @@ def set_seed(seed=None):
 
 def conduct_dm(actual, lstm, time_series, region, target_variable, statmodel):
     # Perform the Diebold-Mariano test
-    dm, pvalue = dm_test(actual, lstm, time_series)
+    dm, pvalue = dm_test(actual, lstm,  time_series, loss =lambda u, v: ((u - v)**2)**0.5,variance_estimator="acf")
     
     # Print the test results
     if pvalue < 0.05:
@@ -140,7 +140,7 @@ def plot_losses(i,all_train_losses,all_val_losses,island,target_label,output_fol
     plt.xlabel('Epoch',fontdict=font)
     plt.ylabel('Loss',fontdict=font)
     plt.xticks(rotation=45)
-    plt.ylim(0, 0.5)
+    plt.yscale("log")
     
     plt.legend(loc='upper left')
     plt.title(f"{island} {target_label} Training and Validation Losses per Epoch for Seed {i+1}",fontdict=font)
