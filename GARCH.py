@@ -78,12 +78,10 @@ def garch_testing(residuals, variable: str, max_lag=20):
     plt.tight_layout()
     plt.show()
     
-    # Plot ACF and PACF of squared residuals
-    fig, axes = plt.subplots(2, 1, figsize=(10, 10))
-    plot_acf(np.square(residuals), lags=max_lag, ax=axes[0])
-    axes[0].set_title(f"ACF of Squared Residuals ({variable})")
-    plot_pacf(np.square(residuals), lags=max_lag, method="ywm", ax=axes[1])
-    axes[1].set_title(f"PACF of Squared Residuals ({variable})")
+    # Plot PACF of squared residuals
+    fig, ax = plt.subplots(figsize=(8, 5))
+    plot_pacf(np.square(residuals), lags=max_lag, method="ywm", ax=ax)
+    ax.set_title(f"PACF of Squared Residuals ({variable})")
     plt.tight_layout()
     plt.show()
     
